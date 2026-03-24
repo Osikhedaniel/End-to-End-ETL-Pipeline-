@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from analysis import load_data_from_db, data_analysis
+from analysis import load_data_from_db, data_analysis 
 
 st.set_page_config(
     page_title="Customer Analytics Dashboard",

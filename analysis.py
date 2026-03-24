@@ -1,9 +1,50 @@
+import os
+from dotenv import load_dotenv
 from loguru import logger
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import psycopg2
+
+load_dotenv()
 
 logger.info("Starting analysis...")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
+def load_data_from_db():
+    """Load customers and orders tables from PostgreSQL"""
+
+    logger.info("Connecting to database...")
+
+    conn = psycopg2.connect(DATABASE_URL)
+
+    try:
+        logger.info("Loading customers table...")
+        customer_df = pd.read_sql_query(
+            "SELECT * FROM customer_data_zion",
+            conn
+        )
+
+        logger.info("Loading orders table...")
+        order_df = pd.read_sql_query(
+            "SELECT * FROM order_data_zion",
+            conn
+        )
+
+        logger.success("Data loaded successfully!")
+
+        return customer_df, order_df
+
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        raise
+
+    finally:
+        conn.close()
+        logger.info("Database connection closed.")
+
 
 def data_analysis(customer_df, orders_df):
 
@@ -40,11 +81,15 @@ def data_analysis(customer_df, orders_df):
         .reset_index()
     )
 
+    recency.rename(columns={'order_date':'last_purchase_date'},inplace=True)
+
     recency['days_since_last_purchase'] = (
-        latest_date - recency['order_date']
+        latest_date - recency['last_purchase_date']
     ).dt.days
 
-    recency.drop(columns=['order_date'], inplace=True)
+    recency['last_purchase_date'] = pd.to_datetime(recency['last_purchase_date'],errors='coerce')
+
+
 
     # Tenure
     logger.info("Calculating tenure...")
@@ -91,11 +136,11 @@ def data_analysis(customer_df, orders_df):
     logger.info("Segmenting customers by frequency...")
 
     def frequency_segment(x):
-        if x >= 20:
+        if x >= 45:
             return "Loyal"
-        elif x >= 10:
+        elif x >= 25:
             return "Regular"
-        elif x >= 3:
+        elif x >= 15:
             return "Occasional"
         else:
             return "One-time"
@@ -140,7 +185,7 @@ def data_analysis(customer_df, orders_df):
         'tenure_days',
         'purchase_segment',
         'order_status'
-    ]]
+    ]].sort_values(by='days_since_last_purchase',ascending=False)
 
     logger.success("Analysis completed successfully!")
 
@@ -150,20 +195,18 @@ def data_analysis(customer_df, orders_df):
         "churn_patterns": churn_patterns
     }
 
-# Load data
-order_df = pd.read_csv("synthetic_data2_orders.csv")
-customer_df = pd.read_csv("synthetic_data2_customers.csv")
+
+# Load data from database
+customer_df, order_df = load_data_from_db()
 
 # Run analysis
 results = data_analysis(customer_df, order_df)
 
-# Extract the results
 customer_behavior = results['customer_behavior']
 demographic_summary = results['demographic_summary']
 churn_patterns = results['churn_patterns']
 
-# Print summaries
-print("Customer Behavior ")
+print("Customer Behavior")
 print(customer_behavior.head(10))
 
 print("Demographic Summary")
@@ -171,3 +214,4 @@ print(demographic_summary.head(10))
 
 print("Churn Patterns")
 print(churn_patterns.head(10))
+

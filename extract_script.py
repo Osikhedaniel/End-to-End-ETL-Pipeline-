@@ -38,7 +38,7 @@ def structure_json(source,from_api=False):
         if df.empty:
             logger.error("JSON loaded but resulted in empty dataframe")
         else:
-            logger.error(f"Data from JSON present in the DataFrame contains {df.shape[0]} rows and {df.shape[1]} columns")
+            logger.info(f"Data from JSON present in the DataFrame contains {df.shape[0]} rows and {df.shape[1]} columns")
     except Exception as e:
         logger.exception("Failed to structure JSON data")
         raise e 
