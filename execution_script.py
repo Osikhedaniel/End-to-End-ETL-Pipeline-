@@ -4,7 +4,7 @@ from load_script import load_to_postgres
 from pathlib import Path 
 
 def main():
-    filepaths = [Path("Data Folder") / "synthetic_data2_orders.csv"]
+    filepaths = [Path("Data Folder") / "synthetic_data2_customers.csv"]
 
     for filepath in filepaths:
         ext = Path(filepath).suffix.lower()
@@ -22,7 +22,7 @@ def main():
         quality_report = data_quality_check(df) 
         Transformed_df  =data_transformation(df) 
 
-        table_name = "order_data_zion" 
+        table_name = "customer_data_zion" 
 
         load_to_postgres(Transformed_df, table_name) 
 

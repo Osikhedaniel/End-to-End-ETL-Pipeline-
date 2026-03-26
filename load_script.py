@@ -9,7 +9,7 @@ def load_to_postgres(df, table_name):
 
     logger.info("Starting load process...")
      
-    load_dotenv() 
+    load_dotenv(override=True) 
 
     database_url = os.getenv("DATABASE_URL") 
 

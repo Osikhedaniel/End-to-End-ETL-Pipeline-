@@ -5,12 +5,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import psycopg2
+import streamlit as st 
 
-load_dotenv()
+load_dotenv(override=True)
 
 logger.info("Starting analysis...")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = st.secrets.get("DATABASE_URL") or os.getenv("DATABASE_URL")
 
 
 def load_data_from_db():
@@ -196,22 +197,4 @@ def data_analysis(customer_df, orders_df):
     }
 
 
-# Load data from database
-customer_df, order_df = load_data_from_db()
-
-# Run analysis
-results = data_analysis(customer_df, order_df)
-
-customer_behavior = results['customer_behavior']
-demographic_summary = results['demographic_summary']
-churn_patterns = results['churn_patterns']
-
-print("Customer Behavior")
-print(customer_behavior.head(10))
-
-print("Demographic Summary")
-print(demographic_summary.head(10))
-
-print("Churn Patterns")
-print(churn_patterns.head(10))
 
